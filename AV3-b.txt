@@ -104,7 +104,7 @@ A2) fornecer o comando de criação de uma visão;
     from film
     where rating = 'PG-13';
 
-    select * from filmes_pg13; #comando para colsultar a view criada.
+    select * from filmes_pg13; #comando para consultar a view criada.
 
 
 A3) elaborar um programa (sugestão: em python) que percorra os registros obtidos por um dos 
