@@ -1,0 +1,152 @@
+
+AV3-b
+
+Esta avaliação ocorrerá sobre a base de dados Sakila, portanto dedique um tempo para compreender essa base de dados.
+
+AÇÕES PROPOSTAS:
+
+a) consultas aninhadas
+    select first_name, last_name 
+    from actor 
+    where actor_id 
+    in (select film_id from film_category 
+        where category_id = 10);
+        
+        Esta consulta retorna o nome dos atores que ja trabalharam em filmes da categoria "games".
+
+
+b) consultas aninhadas correlacionadas
+    select *
+    from store 
+    where (select count(*)
+            from staff st
+            where store_id = store_id
+            ) > 1;
+
+    Esta colsulta deve retornar todas as lojas 
+    que possuem 2 ou mais funcionários trabalhando 
+    ao mesmo tempo na mesma loja.
+
+
+c) exists 
+    from film
+    where exists (
+        select 1
+        from film_actor 
+        where actor_id = 1
+        and film_id = film_id
+    );
+
+    Esta consulta retorna o título dos filmes da tabela "film" 
+    nos quais o ator com o ID 1 (ou qualquer ID de ator especificado) esteja 
+    associado, com base nas correspondências encontradas na tabela "film_actor". 
+    Ou seja, ela lista os filmes em que o ator com o ID 1 desempenhou um papel.
+
+
+d) unique ou distinct
+    select title 
+    from film 
+    where exists
+    (select 1 from film_actor where actor_id = 1 
+        and film_id = film_id) 
+    and film_id in (select distinct film_id from inventory);
+
+
+    Esta consulta retornará os títulos dos filmes em que o ator com ID 1 está envolvido e 
+    que também têm cópias disponíveis para aluguel no banco de dados. 
+
+
+e) junções naturais
+    select * 
+    from customer 
+    natural join customer_list;
+
+    A junção natural combina as colunas com nomes 
+    idênticos em ambas as tabelas e retorna todas as 
+    colunas dessas tabelas para as linhas em que as 
+    colunas com nomes correspondentes têm valores coincidentes.
+
+    O resultado da consulta será uma combinação de informações detalhadas dos 
+    clientes da tabela "customer" e informações resumidas ou de lista de clientes
+    da tabela "customer_list" para os registros onde as colunas com nomes 
+    coincidentes têm valores correspondentes. Isso pode ser útil para comparar 
+    dados detalhados com informações resumidas.
+
+    É importante ressaltar que deve-se levar em consideração a base de dados sakila, do mysql server.
+
+
+f) junção left ou right
+    select customer.customer_id, customer.first_name, customer.last_name, rental.rental_date
+    from customer
+    left join rental on customer.customer_id = rental.customer_id;
+
+    Esta consulta relaciona todos os clientes que alugaram filme.
+
+g) agregação --- h) group by
+
+    select name as categoria, avg(length) as media_duracao 
+    from film INNER JOIN film_category 
+    film_id INNER JOIN category 
+    group by name;
+
+    Esta consulta resultará em uma lista das categorias de filmes 
+    e a média das durações dos filmes em cada categoria. 
+    É um exemplo de consulta que utiliza agregação para 
+    calcular informações resumidas com base nos dados do banco.
+
+    A cláusula group by agrupa os resultados pela coluna "categoria".
+
+
+A2) fornecer o comando de criação de uma visão;
+
+    create view filmes_pg13 AS
+    select film_id, title, description, release_year, rating
+    from film
+    where rating = 'PG-13';
+
+    select * from filmes_pg13; #comando para consultar a view criada.
+
+
+A3) elaborar um programa (sugestão: em python) que percorra os registros obtidos por um dos 
+comandos SQL's que foi criado nos itens "a" a "h".
+
+
+        import pymysql
+
+
+        # Conectar ao banco de dados Sakila
+        conn = pymysql.connect(
+            host="localhost",
+            user="bd2",
+            password="root",
+            database="sakila"
+        )
+
+        # Preparar e executar a consulta SQL de agregação
+        cursor = conn.cursor()
+
+        sqlb = """
+
+            SELECT c.name AS categoria, AVG(f.length) AS media_duracao
+            FROM film f
+            INNER JOIN film_category fc ON f.film_id = fc.film_id
+            INNER JOIN category c ON fc.category_id = c.category_id
+            GROUP BY c.name
+        """
+
+        cursor.execute(sqlb)
+
+        # Iterar pelos resultados e imprimir a média de duração por categoria
+        print("Média de Duração por Categoria:")
+        for (categoria, media_duracao) in cursor:
+            print(f"{categoria}: {media_duracao} minutos")
+
+        # Fechar conexões
+        cursor.close()
+        conn.close()
+
+
+    Neste exemplo, o programa Python se conecta ao banco de dados Sakila, 
+    executa a consulta SQL de agregação para calcular a média das durações 
+    dos filmes por categoria e, em seguida, percorre os resultados, imprimindo 
+    a média de duração para cada categoria. 
